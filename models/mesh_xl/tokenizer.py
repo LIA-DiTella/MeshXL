@@ -39,7 +39,7 @@ class MeshTokenizer(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.pad_id = -1
-        self.num_discrete_coors = args.n_discrete_size  # default: 800
+        self.num_discrete_coors = args.n_max_triangles  # default: 800
         self.codebook_size = args.n_discrete_size       # default: 128
         self.coor_continuous_range = (-1., 1.)
     
@@ -96,8 +96,10 @@ class MeshTokenizer(nn.Module):
         # discard <bos> and <eos> tokens
         data_dict['codes'] = discrete_padded_coords.long()      # batch x (nf * 3 * 3)
         data_dict['discrete_face_coords'] = discrete_face_coords
-        
+
         return data_dict
+    
+    
     
     
     def detokenize(self, input_ids: Tensor) -> dict:

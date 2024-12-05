@@ -56,7 +56,7 @@ def do_train(
     for curr_epoch in range(args.start_epoch, args.max_epoch):
         
         for batch_idx, batch_data_label in enumerate(dataloaders['train']):
-            
+           
             curr_time = time.time()
             
             ### core for model training
@@ -69,7 +69,7 @@ def do_train(
                 with accelerator.autocast():
                     outputs = model(batch_data_label)
                 loss = outputs['loss']
-                
+                breakpoint()
                 # sanity check, skip the infinite loss
                 if not math.isfinite(loss.item()):
                     logger.log_messages("Loss in not finite. Skip this iteration.")

@@ -47,7 +47,7 @@ class MeshXL(nn.Module):
     
     def forward(
             self, 
-            data_dict: dict=None, 
+            data_dict, 
             is_eval: bool=False, 
             is_generate: bool=False,
             num_return_sequences: int=8, 
@@ -58,6 +58,8 @@ class MeshXL(nn.Module):
                 # no_repeat_ngram_size=9,
             )
         ) -> dict:
+
+        
         
         if not is_eval:
             return self.train_one_step(data_dict)
@@ -88,6 +90,8 @@ class MeshXL(nn.Module):
         data_dict = self.tokenizer.tokenize(data_dict)
         
         input_ids = data_dict['input_ids']              # batch x ntoken
+        print(f"Max input_id: {input_ids.max()}, Min input_id: {input_ids.min()}")
+
         attention_mask = data_dict['attention_mask']    # batch x ntoken
         
         # parse input with <bos> and <eos> tokens
@@ -103,8 +107,10 @@ class MeshXL(nn.Module):
         
         target = input_ids.clone()
         target[attention_mask == 0] = -100              # not loss for the padding tokens
+        print("input ids", input_ids.shape)
         
         # Forward padd, calling causal llm with better transformer.
+        
         output = self.transformer(
             input_ids = input_ids.long(),
         )

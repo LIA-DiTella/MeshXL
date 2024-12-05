@@ -4,7 +4,8 @@ from tqdm import tqdm
 from copy import deepcopy
 from eval_utils.sample_generation import evaluate
 
-class Dataset:
+class D
+ataset:
     
     def __init__(self, *args, **kwargs):
         super().__init__()

@@ -30,21 +30,21 @@ def make_args_parser():
     
     ##### Dataset Setups #####
     parser.add_argument("--pad_id", default=-1, type=int, help="padding id")
-    parser.add_argument("--dataset", default='shapenet_chair', help="dataset list split by ','")
+    parser.add_argument("--dataset", default='intra', help="dataset list split by ','")
     parser.add_argument("--augment", default=False, action='store_true', help="whether use data augmentation")
     parser.add_argument("--n_discrete_size", default=128, type=int, help="discretized 3D space")
-    parser.add_argument("--n_max_triangles", default=800, type=int, help="max number of triangles")
+    parser.add_argument("--n_max_triangles", default=128, type=int, help="max number of triangles")
     
     ##### Model Setups #####
     parser.add_argument(
         '--model', 
-        default=None, 
+        default="mesh_xl", 
         type=str, 
         help="The model folder: unconditional / conditional mesh generation"
-    )
+    )#mesh_xl para unconditional y x_mesh_xl para condicional
     parser.add_argument(
         '--llm', 
-        default=None, 
+        default='facebook/opt-1.3b', 
         type=str, 
         help="The LLM super config and pre-trained weights"
     )
@@ -52,8 +52,8 @@ def make_args_parser():
     parser.add_argument('--text_condition', default=None, type=str, help="the conditional language model")
     parser.add_argument('--image_condition', default=None, type=str, help="the conditional vision model")
     parser.add_argument('--pretrained_weights', default=None, type=str, help='checkpoint to pre-trained weights')
-    parser.add_argument("--dataset_num_workers", default=4, type=int, help='number of workers for dataloader')
-    parser.add_argument("--batchsize_per_gpu", default=8, type=int, help='batch size for each GPU')
+    parser.add_argument("--dataset_num_workers", default=4, type=int, help='number of workers for dataloader')#original 4
+    parser.add_argument("--batchsize_per_gpu", default=1, type=int, help='batch size for each GPU')#original 8
     
     ##### Training #####
     parser.add_argument("--start_epoch", default=-1, type=int, help='overwrite by pre-trained weights')
@@ -73,7 +73,7 @@ def make_args_parser():
     parser.add_argument("--test_ckpt", default="", type=str, help='test checkpoint directory')
 
     ##### I/O #####
-    parser.add_argument("--checkpoint_dir", default=None, type=str, help='path to save the checkpoints and visualization samples')
+    parser.add_argument("--checkpoint_dir", default='checkpoint_dir', type=str, help='path to save the checkpoints and visualization samples')
     parser.add_argument("--save_every", default=20000, type=int, help='save checkpoints every xxx iterations')
     parser.add_argument("--log_every", default=10, type=int, help='write training logs every xxx iterations')
     
@@ -114,11 +114,13 @@ def build_dataset_func(args):
             dataset_module.Dataset(args, split_set="train", augment=args.augment)
         )
         datasets['test'].append(
-            dataset_module.Dataset(args, split_set="val", augment=False)
+            dataset_module.Dataset(args, split_set="test", augment=False)
         )
     datasets['train'] = torch.utils.data.ConcatDataset(datasets['train'])
     
+    
     train_sampler, train_loader = build_dataloader_func(args, datasets['train'], split='train')
+    
     dataloaders = {
         'train': train_loader,
         'test': [],
@@ -160,7 +162,7 @@ def main(args):
     
     ### build datasets and dataloaders
     datasets, dataloaders = build_dataset_func(args)
-    
+   
     ### build models
     model = build_model_func(args)
     ### set default checkpoint
